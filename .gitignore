@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+env/
+venv/
+.venv/
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Gemini-related files
+.gemini/
+
+# Obsidian files (if you don't want to track them in Git)
+.obsidian/
+
+# n8n related files (if any local config)
+.n8n/
+
+# Other temporary files
+*.tmp
+*.bak
+*~
+
+/knowledge_base
