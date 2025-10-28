@@ -31,4 +31,8 @@ Thumbs.db
 *.bak
 *~
 
+# Knowledge base data
 /knowledge_base
+
+# IDE settings
+.vscode/
