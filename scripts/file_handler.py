@@ -2,13 +2,10 @@ import logging
 from pathlib import Path
 import abc
 from unstructured.partition.auto import partition
+from scripts.logging_config import setup_logging
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+setup_logging()
 
 
 class FileConverter(abc.ABC):
@@ -35,8 +32,6 @@ class UnstructuredConverter(FileConverter):
             logging.error(f"Error converting file {file_path}: {e}")
             return ""
 
-
-unstructured_converter_instance = UnstructuredConverter()
 
 UNSTRUCTURED_SUPPORTED_EXTENSIONS = [
     ".txt", ".doc", ".docx", ".pdf", ".md", ".csv", ".tsv", ".xls", ".xlsx",
