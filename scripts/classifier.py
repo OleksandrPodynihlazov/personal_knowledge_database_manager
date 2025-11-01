@@ -8,7 +8,6 @@ class ClassifiedData:
     source_path: str
     category: str = "uncategorized"
     tags: List[str] = field(default_factory=list)
-    entities: List[str] = field(default_factory=list)
 
 
 class KeywordClassifier:

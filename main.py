@@ -4,6 +4,10 @@ from scripts.file_handler import get_file_text
 import logging
 from scripts.logging_config import setup_logging
 from scripts.enricher import NerEnricher
+from scripts.kb_integrator import KBIntegrator
+import os
+
+VAULT_PATH = os.path.abspath("../knowledge_base")
 
 setup_logging()
 
@@ -16,9 +20,10 @@ Example:
     python main.py ../path/to/file.txt
 
 The following categories are supported:
-    - лекція
-    - лабораторна
-    - стаття
+    - "Meeting Notes"
+    - "Technical Article"
+    - "Code Snippet"
+
 
 The script will log the classification result to the console.
 
@@ -57,5 +62,7 @@ if __name__ == '__main__':
         logging.info(f"File '{file_path}'\
                     classified as '{enriched_data.category}'\
                     with entities: {enriched_data.entities}")
+        kb_integrator = KBIntegrator(VAULT_PATH)
+        final_path = kb_integrator.create_note(data=enriched_data)
     else:
         logging.error(f"Failed to enrich data for file: {file_path}")
