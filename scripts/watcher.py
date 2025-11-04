@@ -6,8 +6,8 @@ import logging
 import subprocess
 import sys
 
-
 setup_logging()
+logger = logging.getLogger(__name__)
 
 
 class Watcher(FileSystemEventHandler):
@@ -70,7 +70,7 @@ def process_file(file_path: str):
         subprocess.run([sys.executable, "../main.py", file_path], check=True)
         logging.info(f"Processed file successfully: {file_path}")
     except subprocess.CalledProcessError as e:
-        logging.error(f"Error processing file {file_path}: {e}")
+        logger.error(f"Error processing file {file_path}: {e}", file_path)
 
 
 if __name__ == "__main__":

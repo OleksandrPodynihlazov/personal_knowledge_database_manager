@@ -6,10 +6,14 @@ from scripts.logging_config import setup_logging
 from scripts.enricher import NerEnricher
 from scripts.kb_integrator import KBIntegrator
 import os
+import zipfile
+from datetime import date
 
 VAULT_PATH = os.path.abspath("../knowledge_base")
+ARCHIVE_PATH = os.path.abspath("../archive")
 
 setup_logging()
+logger = logging.getLogger(__name__)
 
 """Classify a given file into one of the predefined categories.
 
@@ -31,7 +35,7 @@ The script will exit with code 1 if the text content of the given file could not
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        logging.error("Usage: python main.py <file_path>")
+        logger.error("Usage: python main.py <file_path>")
         sys.exit(1)
 
     file_path = sys.argv[1]
@@ -64,5 +68,20 @@ if __name__ == '__main__':
                     with entities: {enriched_data.entities}")
         kb_integrator = KBIntegrator(VAULT_PATH)
         final_path = kb_integrator.create_note(data=enriched_data)
+
+        try:
+            archive_name = f"{date.today().isoformat()}-{os.path.basename(file_path)}.zip"
+            archive_path = os.path.join(ARCHIVE_PATH, archive_name)
+
+            with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as archive:
+                archive.write(file_path, arcname=os.path.basename(file_path))
+            logging.info(f"Original file archived at: {archive_path}")
+
+            os.remove(file_path)
+            logging.info(f"Original file '{file_path}' removed after archiving")
+
+        except Exception as E:
+            logger.error(f"Error archiving file {file_path}: {E}", file_path)
+
     else:
-        logging.error(f"Failed to enrich data for file: {file_path}")
+        logger.error(f"Failed to enrich data for file: {file_path}", file_path)
