@@ -1,15 +1,13 @@
 import time
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+from logging_config import setup_logging
 import logging
-from file_handler import get_file_text
+import subprocess
+import sys
 
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+setup_logging()
+logger = logging.getLogger(__name__)
 
 
 class Watcher(FileSystemEventHandler):
@@ -57,21 +55,22 @@ def start_watching(path: str):
             time.sleep(1)
     except KeyboardInterrupt:
         logging.info(f"Stopped watching directory {path}")
+        observer.stop()
         observer.join()
 
 
 def process_file(file_path: str):
     """
-    Process the newly created file.
+    Process the given file using the main.py script.
 
-    :param file_path: The path to the newly created file.
+    :param file_path: The path to the file that should be processed.
+    :raises subprocess.CalledProcessError: If the file could not be processed using the main.py script.
     """
-    logging.info(f"Processing file: {file_path}")
-    text_content = get_file_text(file_path)
-    if text_content:
-        logging.info(f"Extracted text content: {text_content[:100]}...")
-    else:
-        logging.warning("No text content could be extracted from the file")
+    try:
+        subprocess.run([sys.executable, "../main.py", file_path], check=True)
+        logging.info(f"Processed file successfully: {file_path}")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error processing file {file_path}: {e}", file_path)
 
 
 if __name__ == "__main__":
