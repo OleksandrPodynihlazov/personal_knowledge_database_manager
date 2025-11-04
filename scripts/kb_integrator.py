@@ -1,5 +1,5 @@
 from datetime import date
-from scripts.enricher import EnrichedData
+from scripts.data_models import EnrichedData
 import re
 from pathlib import Path
 from scripts.logging_config import setup_logging

@@ -1,5 +1,5 @@
 import sys
-from scripts.word_classifier import KeywordClassifier, ClassifiedData
+from scripts.word_classifier import KeywordClassifier
 from scripts.ml_classifier import ZeroShotClassifier
 from scripts.file_handler import get_file_text
 import logging
@@ -9,6 +9,7 @@ from scripts.kb_integrator import KBIntegrator
 import os
 import zipfile
 from datetime import date
+from scripts.data_models import ClassifiedData
 
 VAULT_PATH = os.path.abspath("../knowledge_base")
 ARCHIVE_PATH = os.path.abspath("../archive")
