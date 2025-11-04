@@ -6,6 +6,7 @@ from scripts.logging_config import setup_logging
 import logging
 
 setup_logging()
+logger = logging.getLogger(__name__)
 
 
 def slugify(text: str) -> str:
@@ -105,5 +106,5 @@ class KBIntegrator:
             logging.info(f"Note created at: {final_path}")
             return str(final_path)
         except Exception as e:
-            logging.error(f"Error creating note for file {data.source_path}: {e}")
+            logger.error(f"Error creating note for file {data.source_path}: {e}", data.source_path)
             return ""

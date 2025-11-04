@@ -7,6 +7,7 @@ from typing import List, Dict
 from collections import defaultdict
 
 setup_logging()
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -46,5 +47,5 @@ class NerEnricher:
             enriched_data.entities = entities
             return enriched_data
         except Exception as e:
-            logging.error(f"Error during NER enrichment for file {data.source_path}: {e}")
+            logger.error(f"Error during NER enrichment for file {data.source_path}: {e}", data.source_path)
             return None
