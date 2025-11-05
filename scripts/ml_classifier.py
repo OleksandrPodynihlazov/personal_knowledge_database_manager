@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class ZeroShotClassifier:
-    def __init__(self, labels: list):
+    def __init__(self, labels: list, model: str) -> None:
         """
         Initializes the ZeroShotClassifier instance.
 
@@ -18,13 +18,13 @@ class ZeroShotClassifier:
         """
         self.labels = labels
         try:
-            self.classifier = pipeline(task="zero-shot-classification", model="facebook/bart-large-mnli")
+            self.classifier = pipeline(task="zero-shot-classification", model=model)
             logging.info("Zero-shot classification model loaded successfully.")
         except Exception as e:
             logging.error(f"Failed to load zero-shot classification mode: {e}")
             raise
 
-    def classify(self, text: str) -> str:
+    def classify(self, text: str) -> tuple[str, float]:
         """
         Classifies the given text into one of the predefined categories.
 
@@ -35,12 +35,10 @@ class ZeroShotClassifier:
         try:
             results = self.classifier(text, self.labels)
             if not results or not isinstance(results, dict):
-                return "uncategorized"
-
-            scores = results.get('scores', [])
-            if not scores or scores[0] < 0.6:
-                return "uncategorized"
-            return results.get('labels', ['uncategorized'])[0]
+                return ("uncategorized", 0.0)
+            label = results.get('labels', ["uncategorized"])[0]
+            score = results.get('scores', [0.0])[0]
+            return (label, score)
         except Exception as e:
             logging.error(f"Failed to classify text: {e}")
-            return "uncategorized"
+            return ("uncategorized", 0.0)

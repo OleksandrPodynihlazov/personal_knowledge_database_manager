@@ -1,6 +1,5 @@
 import sys
-from scripts.word_classifier import KeywordClassifier
-from scripts.ml_classifier import ZeroShotClassifier
+from scripts.hybrid_classifier import HybridClassifier
 from scripts.file_handler import get_file_text
 import logging
 from scripts.logging_config import setup_logging
@@ -10,76 +9,71 @@ import os
 import zipfile
 from datetime import date
 from scripts.data_models import ClassifiedData
+import yaml
 
+# --- 1. Setup and Initialization ---
+
+# Define base paths for the Obsidian vault, archive, and configuration file.
 VAULT_PATH = os.path.abspath("../knowledge_base")
 ARCHIVE_PATH = os.path.abspath("../archive")
+BASE_PATH = os.path.abspath("..")
+CONFIG_PATH = os.path.join(BASE_PATH, "config.yml")
 
+# Configure the logging system.
 setup_logging()
 logger = logging.getLogger(__name__)
 
-"""Classify a given file into one of the predefined categories.
+# Load configuration from the YAML file.
+# This allows modifying settings without changing the code.
+with open(CONFIG_PATH, 'r', encoding='utf-8') as config_file:
+    config = yaml.safe_load(config_file)
 
-Usage:
-    python main.py <file_path>
-
-Example:
-    python main.py ../path/to/file.txt
-
-The following categories are supported:
-    - "Meeting Notes"
-    - "Technical Article"
-    - "Code Snippet"
-
-
-The script will log the classification result to the console.
-
-The script will exit with code 1 if the text content of the given file could not be extracted."""
 
 if __name__ == '__main__':
+    # --- 2. Handle Command-Line Arguments ---
     if len(sys.argv) != 2:
         logger.error("Usage: python main.py <file_path>")
         sys.exit(1)
 
     file_path = sys.argv[1]
+
+    # --- 3. Extract Text from File ---
+    # Use file_handler to convert the file into clean text.
     text_content = get_file_text(file_path=file_path)
 
     if text_content is None:
         logging.warning(f"Could not extract text from file: {file_path}")
         sys.exit(1)
 
-    classifier_config = {
-        "Meeting Notes": ["meeting", "agenda", "minutes", "attendees", "action items"],
-        "Technical Article": ["study", "research", "published", "journal", "paper", "introduction", "conclusion"],
-        "Code Snippet": ["python", "javascript", "function", "class", "import", "def", "const"]
-    }
-    ml_labels = ["Meeting Notes", "Technical Article", "Code Snippet", "uncategorized"]
-    category = "uncategorized"
-    try:
-        ml_classifier = ZeroShotClassifier(labels=ml_labels)
-        category = ml_classifier.classify(text=text_content)
-    except Exception as e:
-        logger.error(f"ML classification failed: {e}", file_path)
-        logging.info("Falling back to keyword-based classification.")
-        classifier = KeywordClassifier(config=classifier_config)
-        category = classifier.classify(text=text_content)
-    finally:
-        logging.info(f"File '{file_path}' classified as '{category}'")
+    # --- 4. Classify Text ---
+    # Create an instance of the hybrid classifier, which encapsulates the logic
+    # for choosing between an ML model and keyword-based classification.
+    hybrid_classifier = HybridClassifier(config=config)
+    category = hybrid_classifier.classify(text=text_content)
+    logging.info(f"File '{file_path}' classified as '{category}'")
 
+    # Create a ClassifiedData object with initial data after classification.
     processed_data = ClassifiedData(
         text=text_content,
         source_path=file_path,
         category=category
     )
 
+    # --- 5. Enrich Data ---
+    # Extract Named Entities (NER) from the text.
     enricher = NerEnricher()
     enriched_data = enricher.enrich(data=processed_data)
+
+    # --- 6. Integrate into Knowledge Base and Archive ---
     if enriched_data:
-        logging.info(f"File '{file_path}'\
-                    classified as '{enriched_data.category}'\
-                    with entities: {enriched_data.entities}")
+        logging.info(f"File '{file_path}' classified as '{enriched_data.category}'\
+                     with entities: {enriched_data.entities}")
+
+        # Create a new note in Obsidian.
         kb_integrator = KBIntegrator(VAULT_PATH)
         final_path = kb_integrator.create_note(data=enriched_data)
 
+        # Archive and delete the original file.
         try:
             archive_name = f"{date.today().isoformat()}-{os.path.basename(file_path)}.zip"
             archive_path = os.path.join(ARCHIVE_PATH, archive_name)
