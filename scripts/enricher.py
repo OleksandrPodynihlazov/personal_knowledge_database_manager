@@ -1,18 +1,11 @@
 import spacy
-from scripts.classifier import ClassifiedData
 from scripts.logging_config import setup_logging
 import logging
-from dataclasses import dataclass, field
-from typing import List, Dict
+from scripts.data_models import EnrichedData, ClassifiedData
 from collections import defaultdict
 
 setup_logging()
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class EnrichedData(ClassifiedData):
-    entities: Dict[str, List[str]] = field(default_factory=dict)
 
 
 class NerEnricher:

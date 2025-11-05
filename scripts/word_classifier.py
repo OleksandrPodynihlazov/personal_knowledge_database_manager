@@ -1,13 +1,3 @@
-from dataclasses import dataclass, field
-from typing import List
-
-
-@dataclass
-class ClassifiedData:
-    text: str
-    source_path: str
-    category: str = "uncategorized"
-    tags: List[str] = field(default_factory=list)
 
 
 class KeywordClassifier:

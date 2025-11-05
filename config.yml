@@ -1,0 +1,15 @@
+ml_classifier:
+  model: "facebook/bart-large-mnli"
+  task: "zero-shot-classification"
+  confidence_threshold: 0.6
+  labels:
+      - "Meeting Notes"
+      - "Technical Article"
+      - "Code Snippet"
+      - "uncategorized"
+
+word_classifier:
+      config:
+        "Meeting Notes": ["meeting", "agenda", "minutes", "attendees", "action items"]
+        "Technical Article": ["study", "research", "published", "journal", "paper", "introduction", "conclusion"]
+        "Code Snippet": ["python", "javascript", "function", "class", "import", "def", "const"]
