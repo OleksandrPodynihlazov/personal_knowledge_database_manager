@@ -13,3 +13,10 @@ word_classifier:
         "Meeting Notes": ["meeting", "agenda", "minutes", "attendees", "action items"]
         "Technical Article": ["study", "research", "published", "journal", "paper", "introduction", "conclusion"]
         "Code Snippet": ["python", "javascript", "function", "class", "import", "def", "const"]
+
+templates:
+  "Lecture Notes": "templates/lecture_notes.md"
+  "Idea": "templates/idea.md"
+  "Lab Assignment": "templates/lab_assignment.md"
+  "Meeting Notes": "templates/meeting_notes.md"
+  "Default": "templates/default.md"
