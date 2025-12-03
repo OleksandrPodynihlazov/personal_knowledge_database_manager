@@ -52,7 +52,7 @@ class KBIntegrator:
             # Get the relative template path from the config
             default_template_path = self.templates_config.get("Default", "templates/default.md")
             template_path = self.templates_config.get(data.category, default_template_path)
-            
+
             # Create an absolute path to the template file
             absolute_template_path = self.project_root / template_path
             template_content = absolute_template_path.read_text(encoding='utf-8')
@@ -62,17 +62,17 @@ class KBIntegrator:
             entity_md = ""
             for label, items in data.entities.items():
                 entity_md += f"- **{label}:** {', '.join(f'[[{item}]]' for item in items)}\n"
-            
+
             action_items_md = ""
             if data.action_items:
                 for item in data.action_items:
                     action_items_md += f"- [ ] {item}\n"
-            
+
             data_for_template = data.__dict__
             data_for_template['title'] = title
             data_for_template['entities_list'] = entity_md
             data_for_template['action_items_list'] = action_items_md
-            
+
             safe_data = defaultdict(str, data_for_template)
             file_content = template_content.format_map(safe_data)
 

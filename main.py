@@ -3,17 +3,15 @@ from scripts.hybrid_classifier import HybridClassifier
 from scripts.file_handler import get_file_text
 import logging
 from scripts.logging_config import setup_logging
-from scripts.enricher import NerEnricher
 from scripts.kb_integrator import KBIntegrator
 import os
 import zipfile
 from datetime import date
 from scripts.data_models import ClassifiedData
 import yaml
-from scripts.summarizer import Summarizer
-from scripts.action_item_detector import ActionItemDetector
 from scripts.zero_shot_service import ZeroShotService
 from pathlib import Path
+from scripts.enrichment_pipeline import EnrichmentPipeline
 
 # --- 1. Setup and Initialization ---
 
@@ -52,7 +50,7 @@ if __name__ == '__main__':
     # --- 4. Classify Text ---
     # Create a single instance of the ZeroShotService to be shared
     zs_service = ZeroShotService()
-    
+    enrichment_pipeline = EnrichmentPipeline(zs_service=zs_service, config=config)
     # Create an instance of the hybrid classifier
     hybrid_classifier = HybridClassifier(config=config, zs_service=zs_service)
     classifier_labels = config.get("ml_service", {}).get("labels", [])
@@ -66,49 +64,26 @@ if __name__ == '__main__':
         category=category
     )
 
-    # --- 5. Enrich Data ---
-    # Extract Named Entities (NER) from the text.
-    enricher = NerEnricher()
-    enriched_data = enricher.enrich(data=processed_data)
-
-    # --- 6. Integrate into Knowledge Base and Archive ---
-    if enriched_data:
-        # Summarize the text content.
-        summarizer = Summarizer()
-        summary = summarizer.summarize(text=enriched_data.text)
-        enriched_data.summary = summary
-
-        # Detect action items in the text content.
-        action_item_detector = ActionItemDetector(zs_service=zs_service)
-        action_items_labels = config.get("ml_service", {}).get("action_items_labels", [])
-        action_items = action_item_detector.detect(text=enriched_data.text, labels=action_items_labels)
-        enriched_data.action_items = action_items
-
-        logging.info(f"File '{file_path}' enriched with summary and action items.")
-
-        # Create a new note in Obsidian.
-        templates_config = config.get('templates', {})
-        kb_integrator = KBIntegrator(VAULT_PATH, templates_config, project_root=PROJECT_ROOT)
-        final_path = kb_integrator.create_note(data=enriched_data)
-
-        # Archive and delete the original file ONLY if note creation was successful.
-        if final_path:
-            try:
-                archive_name = f"{date.today().isoformat()}-{os.path.basename(file_path)}.zip"
-                archive_path = os.path.join(ARCHIVE_PATH, archive_name)
-
-                with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as archive:
-                    archive.write(file_path, arcname=os.path.basename(file_path))
-                logging.info(f"Original file archived at: {archive_path}")
-
-                os.remove(file_path)
-                logging.info(f"Original file '{file_path}' removed after archiving")
-
-            except Exception as E:
-                logger.error(f"Error archiving file {file_path}: {E}")
-        else:
-            # If note creation failed, the file is already quarantined by the logger.
-            logging.warning(f"Skipping archive for {file_path} because note creation failed.")
-
+    enriched_data = enrichment_pipeline.run(data=processed_data)
+    if enriched_data is None:
+        logging.error(f"Enrichment pipeline failed for file: {file_path}")
+        sys.exit(1)
+    # Create a new note in Obsidian.
+    templates_config = config.get('templates', {})
+    kb_integrator = KBIntegrator(VAULT_PATH, templates_config, project_root=PROJECT_ROOT)
+    final_path = kb_integrator.create_note(data=enriched_data)
+    # Archive and delete the original file ONLY if note creation was successful.
+    if final_path:
+        try:
+            archive_name = f"{date.today().isoformat()}-{os.path.basename(file_path)}.zip"
+            archive_path = os.path.join(ARCHIVE_PATH, archive_name)
+            with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as archive:
+                archive.write(file_path, arcname=os.path.basename(file_path))
+            logging.info(f"Original file archived at: {archive_path}")
+            os.remove(file_path)
+            logging.info(f"Original file '{file_path}' removed after archiving")
+        except Exception as E:
+            logger.error(f"Error archiving file {file_path}: {E}")
     else:
-        logger.error(f"Failed to enrich data for file: {file_path}")
+        # If note creation failed, the file is already quarantined by the logger.
+        logging.warning(f"Skipping archive for {file_path} because note creation failed.")
