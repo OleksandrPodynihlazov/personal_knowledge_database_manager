@@ -1,12 +1,17 @@
-ml_classifier:
-  model: "facebook/bart-large-mnli"
-  task: "zero-shot-classification"
-  confidence_threshold: 0.6
+ml_service:
   labels:
       - "Meeting Notes"
       - "Technical Article"
       - "Code Snippet"
       - "uncategorized"
+  action_items_labels: 
+      - "action item"
+      - "task"
+      - "reminder"
+      - "to-do"
+      - "task list"
+      - "follow up"
+      - "deadline"
 
 word_classifier:
       config:

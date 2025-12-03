@@ -70,7 +70,7 @@ def process_file(file_path: str):
         subprocess.run([sys.executable, "../main.py", file_path], check=True)
         logging.info(f"Processed file successfully: {file_path}")
     except subprocess.CalledProcessError as e:
-        logger.error(f"Error processing file {file_path}: {e}", file_path)
+        logger.error(f"Error processing file {file_path}: {e}")
 
 
 if __name__ == "__main__":

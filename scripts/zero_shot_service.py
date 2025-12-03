@@ -6,34 +6,42 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-class ZeroShotClassifier:
-    def __init__(self, labels: list, model: str) -> None:
+class ZeroShotService:
+    def __init__(self) -> None:
         """
-        Initializes the ZeroShotClassifier instance.
+        Initializes the ZeroShotService instance.
 
         The instance will load the zero-shot classification model during initialization,
         which is used to classify text into predefined categories.
 
+        :param model: The name of the zero-shot classification model to use.
         :raises Exception: If there is an error during the model loading process.
         """
-        self.labels = labels
         try:
-            self.classifier = pipeline(task="zero-shot-classification", model=model)
+            self.classifier = pipeline(task="zero-shot-classification", model="facebook/bart-large-mnli")
             logging.info("Zero-shot classification model loaded successfully.")
         except Exception as e:
             logging.error(f"Failed to load zero-shot classification mode: {e}")
             raise
 
-    def classify(self, text: str) -> tuple[str, float]:
-        """
-        Classifies the given text into one of the predefined categories.
+    def predict(self, text: str, labels: list) -> tuple[str, float]:
 
-        :param text: The text content that should be classified.
-        :return: The category that the text belongs to, or "uncategorized" if no category is found.
+        """
+        Predicts the category of the given text using the zero-shot classification model.
+
+        The function takes in the text content and the list of labels to classify into.
+        It returns a tuple containing the predicted category and the confidence score.
+
+        If the prediction fails (e.g., due to an error during the classification process),
+        the function returns a tuple with the category as "uncategorized" and the confidence score as 0.0.
+
+        :param text: The text content to classify.
+        :param labels: The list of labels to classify into.
+        :return: A tuple containing the predicted category and the confidence score.
         :raises Exception: If there is an error during the classification process.
         """
         try:
-            results = self.classifier(text, self.labels)
+            results = self.classifier(text, labels)
             if not results or not isinstance(results, dict):
                 return ("uncategorized", 0.0)
             label = results.get('labels', ["uncategorized"])[0]

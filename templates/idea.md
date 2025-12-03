@@ -15,3 +15,6 @@ tags: [idea]
 
 ## 🔗 Related Notes
 {similar_notes}
+
+## Action Items
+{action_items}

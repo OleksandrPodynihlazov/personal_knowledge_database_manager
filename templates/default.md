@@ -11,7 +11,10 @@ tags: []
 {summary}
 
 ## Entities
-{entities}
+{entities_list}
 
 ## Full Text
 {text}
+
+## Action Items
+{action_items_list}
