@@ -28,8 +28,9 @@ def slugify(text: str) -> str:
 
 
 class KBIntegrator:
-    def __init__(self, vault_path: str, templates_config: dict) -> None:
-        self.vault_path = Path(vault_path)
+    def __init__(self, vault_path: Path, templates_config: dict, project_root: Path) -> None:
+        self.vault_path = vault_path
+        self.project_root = project_root
         self.templates_config = templates_config
 
     def create_note(self, data: EnrichedData) -> str:
@@ -48,28 +49,33 @@ class KBIntegrator:
             if an error occurred.
         """
         try:
-            # Get the template path based on the category
+            # Get the relative template path from the config
             default_template_path = self.templates_config.get("Default", "templates/default.md")
             template_path = self.templates_config.get(data.category, default_template_path)
-            template_content = Path(template_path).read_text(encoding='utf-8')
+            
+            # Create an absolute path to the template file
+            absolute_template_path = self.project_root / template_path
+            template_content = absolute_template_path.read_text(encoding='utf-8')
+
             # Prepare the content to be written to the note
             title = Path(data.source_path).stem
             entity_md = ""
             for label, items in data.entities.items():
                 entity_md += f"- **{label}:** {', '.join(f'[[{item}]]' for item in items)}\n"
-            # Add action items to the note content
+            
             action_items_md = ""
             if data.action_items:
-                for items in data.action_items:
-                    action_items_md += f"- [ ] {items}\n"
-            # Prepare the content to be written to the note
+                for item in data.action_items:
+                    action_items_md += f"- [ ] {item}\n"
+            
             data_for_template = data.__dict__
             data_for_template['title'] = title
             data_for_template['entities_list'] = entity_md
             data_for_template['action_items_list'] = action_items_md
-            # Convert action items list to markdown format
+            
             safe_data = defaultdict(str, data_for_template)
             file_content = template_content.format_map(safe_data)
+
             # Create the target directory and write the note
             target_dir = self.vault_path / slugify(data.category)
             target_dir.mkdir(parents=True, exist_ok=True)

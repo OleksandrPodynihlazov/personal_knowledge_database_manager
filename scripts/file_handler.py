@@ -30,7 +30,7 @@ class UnstructuredConverter(FileConverter):
             logging.info(f"File converted successfully: {file_path}")
             return text_content
         except Exception as e:
-            logger.error(f"Error converting file {file_path}: {e}", file_path)
+            logger.error(f"Error converting file {file_path}: {e}")
             return ""
 
 

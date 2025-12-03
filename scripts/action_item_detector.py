@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class ActionItemDetector:
     def __init__(self, zs_service: ZeroShotService) -> None:
-        self.confidence_threshold = 0.75
+        self.confidence_threshold = 0.5
         try:
             self.service = zs_service
             logging.info("Zero-shot classification model loaded successfully.")
