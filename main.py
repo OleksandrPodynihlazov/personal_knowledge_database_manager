@@ -12,6 +12,7 @@ from scripts.data_models import ClassifiedData
 import yaml
 from scripts.summarizer import Summarizer
 from scripts.action_item_detector import ActionItemDetector
+from scripts.zero_shot_service import ZeroShotService
 
 # --- 1. Setup and Initialization ---
 
@@ -50,8 +51,10 @@ if __name__ == '__main__':
     # --- 4. Classify Text ---
     # Create an instance of the hybrid classifier, which encapsulates the logic
     # for choosing between an ML model and keyword-based classification.
-    hybrid_classifier = HybridClassifier(config=config)
-    category = hybrid_classifier.classify(text=text_content)
+    zs_service = ZeroShotService()
+    classifier_labels = config.get("ml_service", {}).get("labels", [])
+    hybrid_classifier = HybridClassifier(config=config, zs_service=zs_service)
+    category = hybrid_classifier.classify(text=text_content, labels=classifier_labels)
     logging.info(f"File '{file_path}' classified as '{category}'")
 
     # Create a ClassifiedData object with initial data after classification.
@@ -75,8 +78,9 @@ if __name__ == '__main__':
         summary = summarizer.summarize(text=enriched_data.text)
         enriched_data.summary = summary
         # Detect action items in the text content.
-        action_item_detector = ActionItemDetector()
-        action_items = action_item_detector.detect(text=enriched_data.text)
+        action_items_labels = config.get("ml_service", {}).get("action_items_labels", [])
+        action_item_detector = ActionItemDetector(zs_service=zs_service)
+        action_items = action_item_detector.detect(text=enriched_data.text, labels=action_items_labels)
         enriched_data.action_items = action_items
         # Create a new note in Obsidian.
         templates_config = config.get('templates', {})
