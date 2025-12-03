@@ -15,3 +15,6 @@ tags: []
 
 ## Full Text
 {text}
+
+## Action Items
+{action_items}

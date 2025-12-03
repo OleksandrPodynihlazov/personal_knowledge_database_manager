@@ -48,23 +48,35 @@ class KBIntegrator:
             if an error occurred.
         """
         try:
+            # Get the template path based on the category
             default_template_path = self.templates_config.get("Default", "templates/default.md")
             template_path = self.templates_config.get(data.category, default_template_path)
             template_content = Path(template_path).read_text(encoding='utf-8')
+            # Prepare the content to be written to the note
             title = Path(data.source_path).stem
             entity_md = ""
             for label, items in data.entities.items():
                 entity_md += f"- **{label}:** {', '.join(f'[[{item}]]' for item in items)}\n"
+            # Add action items to the note content
+            action_items_md = ""
+            if data.action_items:
+                for items in data.action_items:
+                    action_items_md += f"- [ ] {items}\n"
+            # Prepare the content to be written to the note
             data_for_template = data.__dict__
             data_for_template['title'] = title
             data_for_template['entities_list'] = entity_md
+            data_for_template['action_items_list'] = action_items_md
+            # Convert action items list to markdown format
             safe_data = defaultdict(str, data_for_template)
             file_content = template_content.format_map(safe_data)
+            # Create the target directory and write the note
             target_dir = self.vault_path / slugify(data.category)
             target_dir.mkdir(parents=True, exist_ok=True)
             filename = f"{date.today().isoformat()}-{slugify(title)}.md"
             final_path = target_dir / filename
             final_path.write_text(file_content, encoding='utf-8')
+
             logging.info(f"Note created at: {final_path}")
             return str(final_path)
         except Exception as e:

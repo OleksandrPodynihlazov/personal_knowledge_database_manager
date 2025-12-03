@@ -11,6 +11,7 @@ from datetime import date
 from scripts.data_models import ClassifiedData
 import yaml
 from scripts.summarizer import Summarizer
+from scripts.action_item_detector import ActionItemDetector
 
 # --- 1. Setup and Initialization ---
 
@@ -73,6 +74,10 @@ if __name__ == '__main__':
         summarizer = Summarizer()
         summary = summarizer.summarize(text=enriched_data.text)
         enriched_data.summary = summary
+        # Detect action items in the text content.
+        action_item_detector = ActionItemDetector()
+        action_items = action_item_detector.detect(text=enriched_data.text)
+        enriched_data.action_items = action_items
         # Create a new note in Obsidian.
         templates_config = config.get('templates', {})
         kb_integrator = KBIntegrator(VAULT_PATH, templates_config)

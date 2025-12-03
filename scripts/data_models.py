@@ -14,3 +14,4 @@ class ClassifiedData:
 class EnrichedData(ClassifiedData):
     entities: Dict[str, List[str]] = field(default_factory=dict)
     summary: str = ""
+    action_items: List[str] = field(default_factory=list)
