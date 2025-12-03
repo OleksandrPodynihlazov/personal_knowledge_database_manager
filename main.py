@@ -10,6 +10,7 @@ import zipfile
 from datetime import date
 from scripts.data_models import ClassifiedData
 import yaml
+from scripts.summarizer import Summarizer
 
 # --- 1. Setup and Initialization ---
 
@@ -68,7 +69,10 @@ if __name__ == '__main__':
     if enriched_data:
         logging.info(f"File '{file_path}' classified as '{enriched_data.category}'\
                      with entities: {enriched_data.entities}")
-
+        # Summarize the text content.
+        summarizer = Summarizer()
+        summary = summarizer.summarize(text=enriched_data.text)
+        enriched_data.summary = summary
         # Create a new note in Obsidian.
         templates_config = config.get('templates', {})
         kb_integrator = KBIntegrator(VAULT_PATH, templates_config)
