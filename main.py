@@ -70,7 +70,8 @@ if __name__ == '__main__':
                      with entities: {enriched_data.entities}")
 
         # Create a new note in Obsidian.
-        kb_integrator = KBIntegrator(VAULT_PATH)
+        templates_config = config.get('templates', {})
+        kb_integrator = KBIntegrator(VAULT_PATH, templates_config)
         final_path = kb_integrator.create_note(data=enriched_data)
 
         # Archive and delete the original file.
